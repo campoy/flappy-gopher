@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -47,10 +47,17 @@ func run() error {
 	}
 	defer s.destroy()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(5*time.Second, cancel)
+	events := make(chan sdl.Event)
+	errc := s.run(events, r)
 
-	return <-s.run(ctx, r)
+	runtime.LockOSThread()
+	for {
+		select {
+		case events <- sdl.WaitEvent():
+		case err := <-errc:
+			return err
+		}
+	}
 }
 
 func drawTitle(r *sdl.Renderer) error {
