@@ -41,6 +41,14 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 					return
 				}
 			case <-tick:
+				s.update()
+
+				if s.bird.isDead() {
+					drawTitle(r, "Game Over")
+					time.Sleep(time.Second)
+					s.restart()
+				}
+
 				if err := s.paint(r); err != nil {
 					errc <- err
 				}
@@ -64,18 +72,22 @@ func (s *scene) handleEvent(event sdl.Event) bool {
 	return false
 }
 
+func (s *scene) update() {
+	s.bird.update()
+}
+
+func (s *scene) restart() {
+	s.bird.restart()
+}
+
 func (s *scene) paint(r *sdl.Renderer) error {
-
 	r.Clear()
-
 	if err := r.Copy(s.bg, nil, nil); err != nil {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
-
 	if err := s.bird.paint(r); err != nil {
 		return err
 	}
-
 	r.Present()
 	return nil
 }
