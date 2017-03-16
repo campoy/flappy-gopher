@@ -81,6 +81,7 @@ func (s *scene) handleEvent(event sdl.Event) bool {
 func (s *scene) update() {
 	s.bird.update()
 	s.pipe.update()
+	s.bird.touch(s.pipe)
 }
 
 func (s *scene) restart() {
