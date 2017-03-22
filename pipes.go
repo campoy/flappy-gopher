@@ -16,9 +16,8 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"time"
-
 	"sync"
+	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
 	img "github.com/veandco/go-sdl2/sdl_image"

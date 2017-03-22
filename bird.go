@@ -15,7 +15,6 @@ package main
 
 import (
 	"fmt"
-
 	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"

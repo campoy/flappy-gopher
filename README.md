@@ -34,6 +34,8 @@ episodes dedicated to it.
 You need to install first SDL2 and the SDL2 bindings for Go. To do so follow the instructions [here](https://github.com/veandco/go-sdl2).
 It is quite easy to install on basically any platform.
 
+You will also need to install [pkg-config](https://en.wikipedia.org/wiki/Pkg-config).
+
 After that you should be able to simply run:
 
     go get github.com/campoy/flappy-gopher
