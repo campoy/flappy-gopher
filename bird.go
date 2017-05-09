@@ -57,7 +57,7 @@ func (b *bird) update() {
 
 	b.time++
 	b.y -= int32(b.speed)
-	if b.y < 0 {
+	if b.y+b.h < 0 || b.y-b.h > 600 {
 		b.dead = true
 	}
 	b.speed += gravity
