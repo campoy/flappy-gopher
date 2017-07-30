@@ -16,61 +16,88 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(2)
-	}
+	sdl.Main(func() {
+		if err := run(); err != nil {
+			fmt.Fprintf(os.Stderr, "%v", err)
+			os.Exit(2)
+		}
+	})
 }
 
 func run() error {
-	err := sdl.Init(sdl.INIT_EVERYTHING)
+	var err error
+	sdl.Do(func() {
+		err = sdl.Init(sdl.INIT_EVERYTHING)
+	})
 	if err != nil {
 		return fmt.Errorf("could not initialize SDL: %v", err)
 	}
-	defer sdl.Quit()
+	defer func() {
+		sdl.Do(func() {
+			sdl.Quit()
+		})
+	}()
 
-	if err := ttf.Init(); err != nil {
+	sdl.Do(func() {
+		err = ttf.Init()
+	})
+	if err != nil {
 		return fmt.Errorf("could not initialize TTF: %v", err)
 	}
-	defer ttf.Quit()
+	defer func() {
+		sdl.Do(func() {
+			ttf.Quit()
+		})
+	}()
 
-	w, r, err := sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	var w *sdl.Window
+	var r *sdl.Renderer
+	sdl.Do(func() {
+		w, r, err = sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
+	})
 	if err != nil {
 		return fmt.Errorf("could not create window: %v", err)
 	}
-	defer w.Destroy()
+	defer func() {
+		sdl.Do(func() {
+			w.Destroy()
+		})
+	}()
 
-	if err := drawTitle(r, "Flappy Gopher"); err != nil {
+	sdl.Do(func() {
+		err = drawTitle(r, "Flappy Gopher")
+	})
+	if err != nil {
 		return fmt.Errorf("could not draw title: %v", err)
 	}
 
 	time.Sleep(1 * time.Second)
 
-	s, err := newScene(r)
+	var s *scene
+	sdl.Do(func() {
+		s, err = newScene(r)
+	})
 	if err != nil {
 		return fmt.Errorf("could not create scene: %v", err)
 	}
-	defer s.destroy()
+	defer func() {
+		sdl.Do(func() {
+			s.destroy()
+		})
+	}()
 
-	events := make(chan sdl.Event)
-	errc := s.run(events, r)
-
-	runtime.LockOSThread()
-	for {
-		select {
-		case events <- sdl.WaitEvent():
-		case err := <-errc:
-			return err
-		}
+	err = s.run(r)
+	if err != nil {
+		return fmt.Errorf("error while running: %v", err)
 	}
+	return nil
 }
 
 func drawTitle(r *sdl.Renderer, text string) error {
