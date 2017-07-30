@@ -16,16 +16,18 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
 )
 
 type scene struct {
-	bg    *sdl.Texture
-	bird  *bird
-	pipes *pipes
+	bg        *sdl.Texture
+	bird      *bird
+	pipes     *pipes
+	framerate uint32
 }
 
 func newScene(r *sdl.Renderer) (*scene, error) {
@@ -44,38 +46,64 @@ func newScene(r *sdl.Renderer) (*scene, error) {
 		return nil, err
 	}
 
-	return &scene{bg: bg, bird: b, pipes: ps}, nil
+	return &scene{bg: bg, bird: b, pipes: ps, framerate: 120}, nil
 }
 
-func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
+func (s *scene) run(r *sdl.Renderer) error {
 	errc := make(chan error)
+	defer close(errc)
+	events := make(chan sdl.Event)
+	donec := make(chan bool)
+	defer close(donec)
 
 	go func() {
-		defer close(errc)
-		tick := time.Tick(10 * time.Millisecond)
 		for {
 			select {
-			case e := <-events:
-				if done := s.handleEvent(e); done {
-					return
-				}
-			case <-tick:
-				s.update()
-
-				if s.bird.isDead() {
-					drawTitle(r, "Game Over")
-					time.Sleep(time.Second)
-					s.restart()
-				}
-
-				if err := s.paint(r); err != nil {
-					errc <- err
-				}
+			case <-donec:
+				close(events)
+			default:
+				events <- sdl.WaitEvent()
 			}
 		}
 	}()
 
-	return errc
+	wg := sync.WaitGroup{}
+	for {
+		select {
+		case err := <-errc:
+			return err
+		case <-donec:
+			return nil
+		default:
+			wg.Add(1)
+			go func() {
+				select {
+				case e := <-events:
+					if done := s.handleEvent(e); done {
+						go func() {
+							donec <- done
+						}()
+					}
+				default:
+					s.update()
+
+					if s.bird.isDead() {
+						sdl.Do(func() {
+							drawTitle(r, "Game Over")
+						})
+						time.Sleep(time.Second)
+						s.restart()
+					}
+
+					if err := s.paint(r); err != nil {
+						errc <- err
+					}
+				}
+				wg.Done()
+			}()
+			wg.Wait()
+		}
+	}
 }
 
 func (s *scene) handleEvent(event sdl.Event) bool {
@@ -104,16 +132,30 @@ func (s *scene) restart() {
 
 func (s *scene) paint(r *sdl.Renderer) error {
 	r.Clear()
-	if err := r.Copy(s.bg, nil, nil); err != nil {
+	var err error
+	sdl.Do(func() {
+		err = r.Copy(s.bg, nil, nil)
+	})
+	if err != nil {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
-	if err := s.bird.paint(r); err != nil {
+	sdl.Do(func() {
+		err = s.bird.paint(r)
+	})
+	if err != nil {
 		return err
 	}
-	if err := s.pipes.paint(r); err != nil {
+	sdl.Do(func() {
+		err = s.pipes.paint(r)
+	})
+	if err != nil {
 		return err
 	}
-	r.Present()
+
+	sdl.Do(func() {
+		r.Present()
+		sdl.Delay(1000 / s.framerate)
+	})
 	return nil
 }
 
