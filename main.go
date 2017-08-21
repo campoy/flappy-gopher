@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+	ttf "github.com/veandco/go-sdl2/ttf"
 )
 
 func main() {
