@@ -18,8 +18,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
 )
 
 type scene struct {
@@ -84,7 +84,7 @@ func (s *scene) handleEvent(event sdl.Event) bool {
 		return true
 	case *sdl.MouseButtonEvent:
 		s.bird.jump()
-	case *sdl.MouseMotionEvent, *sdl.WindowEvent, *sdl.TouchFingerEvent, *sdl.CommonEvent:
+	case *sdl.MouseMotionEvent, *sdl.WindowEvent, *sdl.TouchFingerEvent, *sdl.CommonEvent, *sdl.KeyboardEvent, *sdl.TextInputEvent:
 	default:
 		log.Printf("unknown event %T", event)
 	}
