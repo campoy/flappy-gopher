@@ -18,7 +18,7 @@ import (
 	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
+	"github.com/veandco/go-sdl2/img"
 )
 
 const (
