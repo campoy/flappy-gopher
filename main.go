@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 func main() {
@@ -83,7 +83,7 @@ func drawTitle(r *sdl.Renderer, text string) error {
 	defer f.Close()
 
 	c := sdl.Color{R: 255, G: 100, B: 0, A: 255}
-	s, err := f.RenderUTF8_Solid(text, c)
+	s, err := f.RenderUTF8Solid(text, c)
 	if err != nil {
 		return fmt.Errorf("could not render title: %v", err)
 	}
