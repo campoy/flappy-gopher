@@ -48,6 +48,9 @@ func run() error {
 	}
 	defer w.Destroy()
 
+	// Fix for: https://github.com/veandco/go-sdl2/issues/364
+	sdl.PumpEvents()
+
 	if err := drawTitle(r, "Flappy Gopher"); err != nil {
 		return fmt.Errorf("could not draw title: %v", err)
 	}
