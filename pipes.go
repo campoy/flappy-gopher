@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
-	img "github.com/veandco/go-sdl2/sdl_image"
+	img "github.com/veandco/go-sdl2/img"
 )
 
 type pipes struct {
